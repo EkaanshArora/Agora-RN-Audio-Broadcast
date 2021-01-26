@@ -1,6 +1,6 @@
-# Agora React Native Broadcasting Demo
+# Agora React Native Audio Broadcasting
 
-Quickstart for live-broadcasting on react-native using Agora.io SDK.
+Quickstart for voice/audio live-broadcasting on react-native using Agora.io SDK.
 Use this guide to quickly start a multiple user live broadcast.
 
 
@@ -36,13 +36,11 @@ In the next step, you need to use the App ID of your project. Follow these steps
 2. Click **Create** and follow the on-screen instructions to set the project name, choose an authentication mechanism (for this project select App ID without a certificate), and Click **Submit**. 
 3. On the **Project Management** page, find the **App ID** of your project. 
 
-Check the end of document if you want to use App ID with certificate.
-
 ### Steps to run our example
 
 * Download and extract the zip file from the master branch.
 * Run npm install or use yarn to install the app dependencies in the unzipped directory.
-* Navigate to `./src/App.tsx` and edit line 13 to enter your App ID that we generated.
+* Navigate to `./src/App.tsx` and edit line 38 to enter your App ID that we generated.
 * Connect your device and run `react-native run-android` / `react-native run-ios` to start the app.
 
 The app uses `channel-x` as the channel name.
