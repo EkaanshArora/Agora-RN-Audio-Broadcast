@@ -70,4 +70,5 @@ export default StyleSheet.create({
     color: '#F4061D',
   },
   spacer: { marginBottom: 32 },
+  input: { height: 40, borderColor: 'gray', borderWidth: 1 },
 });
