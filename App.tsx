@@ -39,13 +39,13 @@ interface State {
 }
 
 export default class App extends Component<null, State> {
-  _engine?: RtcEngine;
-  rtmEngine?: RtmEngine;
+  _rtcEngine?: RtcEngine;
+  _rtmEngine?: RtmEngine;
 
   constructor(props) {
     super(props);
     this.state = {
-      appId: '30a6bc89994d4222a71eba01c253cbc7',
+      appId: 'ENTER APP ID HERE',
       token: null,
       isHost: true,
       channelName: 'channel-x',
@@ -64,33 +64,33 @@ export default class App extends Component<null, State> {
   }
 
   componentDidMount() {
-    this.init();
+    this.initRTC();
     this.initRTM();
   }
 
   componentWillUnmount() {
-    this.rtmEngine?.destroyClient();
-    this._engine?.destroy();
+    this._rtmEngine?.destroyClient();
+    this._rtcEngine?.destroy();
   }
 
   /**
-   * @name init
+   * @name initRTC
    * @description Function to initialize the Rtc Engine, attach event listeners and actions
    */
-  init = async () => {
+  initRTC = async () => {
     const { appId, isHost } = this.state;
-    this._engine = await RtcEngine.create(appId);
-    this._engine.enableVideo();
-    await this._engine?.setChannelProfile(ChannelProfile.LiveBroadcasting);
-    await this._engine?.setClientRole(
+    this._rtcEngine = await RtcEngine.create(appId);
+    // await this._rtcEngine.disableVideo();
+    await this._rtcEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+    await this._rtcEngine.setClientRole(
       isHost ? ClientRole.Broadcaster : ClientRole.Audience
     );
 
-    this._engine.addListener('Error', (err) => {
+    this._rtcEngine.addListener('Error', (err) => {
       console.log('Error', err);
     });
 
-    this._engine.addListener('UserJoined', (uid, elapsed) => {
+    this._rtcEngine.addListener('UserJoined', (uid, elapsed) => {
       console.log('UserJoined', uid, elapsed);
       // Get current peer IDs
       const { peerIds } = this.state;
@@ -103,7 +103,7 @@ export default class App extends Component<null, State> {
       }
     });
 
-    this._engine.addListener('UserOffline', (uid, reason) => {
+    this._rtcEngine.addListener('UserOffline', (uid, reason) => {
       console.log('UserOffline', uid, reason);
       const { peerIds } = this.state;
       this.setState({
@@ -113,13 +113,16 @@ export default class App extends Component<null, State> {
     });
 
     // If Local user joins RTC channel
-    this._engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
-      console.log('JoinChannelSuccess', channel, uid, elapsed);
-      this.setState({
-        joinSucceed: true,
-        rtcUid: uid,
-      });
-    });
+    this._rtcEngine.addListener(
+      'JoinChannelSuccess',
+      (channel, uid, elapsed) => {
+        console.log('JoinChannelSuccess', channel, uid, elapsed);
+        this.setState({
+          joinSucceed: true,
+          rtcUid: uid,
+        });
+      }
+    );
   };
 
   /**
@@ -128,17 +131,16 @@ export default class App extends Component<null, State> {
    */
   initRTM = async () => {
     let { appId, usernames, rtcUid } = this.state;
+    this._rtmEngine = new RtmEngine();
 
-    this.rtmEngine = new RtmEngine();
-    this.rtmEngine.on('error', (evt) => {
+    this._rtmEngine.on('error', (evt) => {
       console.log(evt);
     });
 
-    this.rtmEngine.on('channelMessageReceived', (evt) => {
+    this._rtmEngine.on('channelMessageReceived', (evt) => {
       let { text } = evt;
       let data = text.split(':');
       console.log('cmr', evt);
-
       if (data[1] === '!leave') {
         let temp = JSON.parse(JSON.stringify(usernames));
         Object.keys(temp).map((k) => {
@@ -154,7 +156,7 @@ export default class App extends Component<null, State> {
       }
     });
 
-    this.rtmEngine.on('messageReceived', (evt) => {
+    this._rtmEngine.on('messageReceived', (evt) => {
       let { text } = evt;
       let data = text.split(':');
       console.log('pm', evt);
@@ -163,16 +165,16 @@ export default class App extends Component<null, State> {
       });
     });
 
-    this.rtmEngine.on('channelMemberJoined', (evt) => {
+    this._rtmEngine.on('channelMemberJoined', (evt) => {
       console.log('!spm', this.state.myUsername);
-      this.rtmEngine?.sendMessageToPeer({
+      this._rtmEngine?.sendMessageToPeer({
         peerId: evt.uid,
         text: rtcUid + ':' + this.state.myUsername,
         offline: false,
       });
     });
 
-    await this.rtmEngine.createClient(appId).catch((e) => console.log(e));
+    await this._rtmEngine.createClient(appId).catch((e) => console.log(e));
   };
 
   /**
@@ -180,7 +182,7 @@ export default class App extends Component<null, State> {
    * @description Function to toggle the roll between broadcaster and audience
    */
   toggleRole = async () => {
-    this._engine?.setClientRole(
+    this._rtcEngine?.setClientRole(
       !this.state.isHost ? ClientRole.Broadcaster : ClientRole.Audience
     );
     this.setState((ps) => {
@@ -196,15 +198,15 @@ export default class App extends Component<null, State> {
     let { myUsername, token, channelName, rtcUid } = this.state;
     if (myUsername) {
       // Join RTC Channel using null token and channel name
-      await this._engine?.joinChannel(token, channelName, null, rtcUid);
+      await this._rtcEngine?.joinChannel(token, channelName, null, rtcUid);
       // Login & Join RTM Channel
-      await this.rtmEngine
+      await this._rtmEngine
         ?.login({ uid: myUsername })
         .catch((e) => console.log(e));
-      await this.rtmEngine
+      await this._rtmEngine
         ?.joinChannel(channelName)
         .catch((e) => console.log(e));
-      await this.rtmEngine
+      await this._rtmEngine
         ?.sendMessageByChannelId(channelName, rtcUid + ':' + myUsername)
         .catch((e) => console.log(e));
     }
@@ -215,13 +217,13 @@ export default class App extends Component<null, State> {
    * @description Function to end the call
    */
   endCall = async () => {
-    await this._engine?.leaveChannel();
     let { channelName, rtcUid } = this.state;
-    await this.rtmEngine
+    await this._rtcEngine?.leaveChannel();
+    await this._rtmEngine
       ?.sendMessageByChannelId(channelName, rtcUid + ':!leave')
       .catch((e) => console.log(e));
     this.setState({ peerIds: [], joinSucceed: false, usernames: {} });
-    await this.rtmEngine?.logout().catch((e) => console.log(e));
+    await this._rtmEngine?.logout().catch((e) => console.log(e));
   };
 
   render() {
@@ -230,15 +232,17 @@ export default class App extends Component<null, State> {
       <View style={styles.max}>
         <View style={styles.spacer}>
           <Text style={styles.roleText}>
-            You're {isHost ? 'a broadcaster' : 'the audience'}
+            You're{' '}
+            <Text style={styles.roleTextBold}>
+              {isHost ? 'a broadcaster' : 'the audience'}
+            </Text>
           </Text>
-          <Text style={joinSucceed ? styles.roleTextGreen : styles.roleTextRed}>
+          <Text style={styles.roleText}>
             {joinSucceed
-              ? 'Connected to ' + channelName
-              : 'Disconnected - start call'}
+              ? "You're connected to " + channelName
+              : "You're disconnected - start call"}
           </Text>
         </View>
-
         {this._renderUsers()}
         {joinSucceed ? (
           <></>
@@ -252,17 +256,19 @@ export default class App extends Component<null, State> {
               }}
               value={myUsername}
             />
-            {!myUsername ? <Text>Name can't be blank</Text> : null}
+            {!myUsername ? (
+              <Text style={styles.errorText}>Name can't be blank</Text>
+            ) : null}
           </>
         )}
         <View style={styles.buttonHolder}>
           <TouchableOpacity onPress={this.toggleRole} style={styles.button}>
             <Text style={styles.buttonText}> Toggle Role </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={this.startCall} style={styles.buttonGreen}>
+          <TouchableOpacity onPress={this.startCall} style={styles.button}>
             <Text style={styles.buttonText}> Start Call </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={this.endCall} style={styles.buttonRed}>
+          <TouchableOpacity onPress={this.endCall} style={styles.button}>
             <Text style={styles.buttonText}> End Call </Text>
           </TouchableOpacity>
         </View>

@@ -3,7 +3,8 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
   max: {
     flex: 1,
-    marginVertical: 40,
+    // marginVertical: 40,
+    backgroundColor: '#F7F7F7',
   },
   buttonHolder: {
     alignItems: 'center',
@@ -14,19 +15,19 @@ export default StyleSheet.create({
   button: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#0093E9',
-    borderRadius: 24,
+    backgroundColor: '#38373A',
+    // borderRadius: 24,
   },
   buttonRed: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#F4061D',
+    // backgroundColor: '#F4061D',
     borderRadius: 24,
   },
   buttonGreen: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#09DF18',
+    // backgroundColor: '#09DF18',
     borderRadius: 24,
   },
   buttonText: {
@@ -56,19 +57,36 @@ export default StyleSheet.create({
   },
   roleText: {
     textAlign: 'center',
-    fontWeight: '700',
+    // fontWeight: '700',
+    color: '#fbfbfb',
     fontSize: 18,
   },
-  roleTextGreen: {
+  roleTextBold: {
     textAlign: 'center',
     fontSize: 18,
-    color: '#09DF18',
+    fontWeight: '700',
   },
   roleTextRed: {
     textAlign: 'center',
     fontSize: 18,
-    color: '#F4061D',
+    // color: '#F4061D',
   },
-  spacer: { marginBottom: 32 },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1 },
+  spacer: {
+    width: '100%',
+    padding: '2%',
+    marginBottom: 32,
+    // borderWidth: 1,
+    backgroundColor: '#38373A',
+    color:'#fbfbfb',
+    // borderColor: '#38373A',
+  },
+  input: {
+    height: 40,
+    borderColor: '#38373A',
+    borderWidth: 1.5,
+    width: '90%',
+    alignSelf: 'center',
+    padding: 10,
+  },
+  errorText: { textAlign: 'center', margin: 5, color: '#38373A' },
 });
